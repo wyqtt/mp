@@ -6,11 +6,12 @@ import app.morphe.patcher.patch.bytecodePatch
 /**
  * KWGT Premium Patch
  *
- * Unlocks KWGT Pro features by patching 4 layers of the licensing system:
+ * Unlocks KWGT Pro features by patching 5 layers of the licensing system:
  *  A) LicenseState.isLicensed() → return true
  *  B) LicenseClient.j() → return LICENSED enum constant
  *  C) BuildEnv.g1() → return true (has-pro-key flag)
  *  D) BuildEnv.o1() → return true (secondary premium flag)
+ *  E) Config.v() → return false (should-show-ads flag)
  */
 @Suppress("unused")
 val kwgtPremiumPatch = bytecodePatch(
@@ -52,6 +53,17 @@ val kwgtPremiumPatch = bytecodePatch(
             0,
             """
             const/4 v0, 0x1
+            return v0
+            """.trimIndent(),
+        )
+
+        // Layer E: Config.v() → return false (disables ads)
+        // This method is called by AdsActivity.onResume() and LicenseActivity.J()
+        // to decide whether to load/show ads. Returning false = no ads.
+        ShouldShowAdsFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x0
             return v0
             """.trimIndent(),
         )
