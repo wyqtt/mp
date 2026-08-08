@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/wyqtt/mp/compare/v1.2.0...v1.3.0) (2026-08-08)
+
+### ✨ New Features
+
+* block ads fix ([7c09561](https://github.com/wyqtt/mp/commit/7c09561634be8e7cb6e89e5b6f07e4a0d103325d))
+
 ## [1.2.0](https://github.com/wyqtt/mp/compare/v1.1.0...v1.2.0) (2026-08-08)
 
 ### ✨ New Features
