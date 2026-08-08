@@ -2,6 +2,7 @@ package app.template.patches.kwgt
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 object IsLicensedFingerprint : Fingerprint(
@@ -43,10 +44,44 @@ object BuildEnvIsProFingerprint : Fingerprint(
 )
 
 /**
- * Targets the "should show ads" config flag: org/kustom/config/f.v()Z
+ * Targets AdsActivity.y1(Z)V — the core banner ad toggle method.
  *
- * Returns true when ads should show. Patching to return false prevents
- * the ad display path in AdsActivity.onResume() and LicenseActivity.J().
+ * Contains the string "Unable to start ads, banner container not available"
+ * which uniquely identifies it across versions.
+ */
+object AdsActivityToggleFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    parameters = listOf("Z"),
+    definingClass = "Lorg/kustom/app/AdsActivity;",
+    name = "y1",
+    filters = listOf(
+        string("Unable to start ads, banner container not available"),
+    ),
+)
+
+/**
+ * Targets MarketActivity.l1(String, Function0)V — the interstitial ad method.
+ *
+ * Called from EditorActivity and DrawerActivity to show Appodeal interstitial ads.
+ * Shows interstitial (0x80) via Appodeal.show$default().
+ */
+object InterstitialAdFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    parameters = listOf("Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;"),
+    definingClass = "Lorg/kustom/app/MarketActivity;",
+    name = "l1",
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/appodeal/ads/Appodeal;",
+            name = "show\$default",
+        ),
+    ),
+)
+
+/**
+ * Targets the "should show ads" config flag: org/kustom/config/f.v()Z
  */
 object ShouldShowAdsFingerprint : Fingerprint(
     returnType = "Z",
@@ -68,10 +103,6 @@ object ShouldShowAdsFingerprint : Fingerprint(
 
 /**
  * Targets the Appodeal ad initializer: org/kustom/ads/c.a(Activity)V
- *
- * This is the entry point that initializes and caches Appodeal ads.
- * Called from AdsActivity.onResume() via the ads singleton.
- * Patching to return-void immediately prevents any ad SDK initialization.
  */
 object AdsInitFingerprint : Fingerprint(
     returnType = "V",
@@ -89,9 +120,6 @@ object AdsInitFingerprint : Fingerprint(
 
 /**
  * Targets the ad banner show method: org/kustom/ads/a.b(FrameLayout, AdsViewHelperInterface$a)V
- *
- * This method creates the Appodeal banner view and adds it to the FrameLayout container.
- * Patching to return-void immediately prevents any banner from appearing.
  */
 object AdsBannerShowFingerprint : Fingerprint(
     returnType = "V",

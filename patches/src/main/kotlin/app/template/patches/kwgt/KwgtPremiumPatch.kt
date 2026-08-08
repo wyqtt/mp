@@ -6,14 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 /**
  * KWGT Premium Patch
  *
- * Unlocks KWGT Pro features by patching 7 layers:
- *  A) LicenseState.isLicensed() → return true
- *  B) LicenseClient.j() → return LICENSED enum constant
- *  C) BuildEnv.g1() → return true (has-pro-key flag)
- *  D) BuildEnv.o1() → return true (secondary premium flag)
- *  E) Config.v() → return false (should-show-ads flag)
- *  F) Ads initializer c.a() → return-void (prevent Appodeal init)
- *  G) Banner show a.b() → return-void (prevent banner display)
+ * Unlocks KWGT Pro features and disables all ads.
  */
 @Suppress("unused")
 val kwgtPremiumPatch = bytecodePatch(
@@ -59,7 +52,20 @@ val kwgtPremiumPatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        // Layer E: Config.v() → return false (disables ads at config level)
+        // Layer E: AdsActivity.y1(Z)V → return-void (kill banner ad logic)
+        AdsActivityToggleFingerprint.method.addInstructions(
+            0,
+            "return-void",
+        )
+
+        // Layer F: MarketActivity.l1() → return-void (kill interstitial ads)
+        // Called from EditorActivity and DrawerActivity to show interstitial ads
+        InterstitialAdFingerprint.method.addInstructions(
+            0,
+            "return-void",
+        )
+
+        // Layer G: Config.v() → return false (should-show-ads config flag)
         ShouldShowAdsFingerprint.method.addInstructions(
             0,
             """
@@ -68,13 +74,13 @@ val kwgtPremiumPatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        // Layer F: Ads initializer → return-void (prevent Appodeal SDK init)
+        // Layer H: Ads initializer → return-void (prevent Appodeal SDK init)
         AdsInitFingerprint.method.addInstructions(
             0,
             "return-void",
         )
 
-        // Layer G: Banner show → return-void (prevent banner display)
+        // Layer I: Banner show → return-void (prevent banner display)
         AdsBannerShowFingerprint.method.addInstructions(
             0,
             "return-void",
