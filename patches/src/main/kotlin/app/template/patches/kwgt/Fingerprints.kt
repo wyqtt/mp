@@ -43,17 +43,10 @@ object BuildEnvIsProFingerprint : Fingerprint(
 )
 
 /**
- * Targets the "should show ads" method: org/kustom/config/f.v()Z
+ * Targets the "should show ads" config flag: org/kustom/config/f.v()Z
  *
- * This method is called by AdsActivity.onResume() and LicenseActivity.J()
- * to determine whether ads should be displayed. Returns true = show ads.
- * Patching to return false disables all ad loading and display.
- *
- * The method calls y() (checks if not-pro) and BuildEnv.A0() (ads capability flag).
- *
- * Access flags: PUBLIC FINAL
- * Return type: Z
- * Defining class: Lorg/kustom/config/f; (obfuscated Settings/Config class)
+ * Returns true when ads should show. Patching to return false prevents
+ * the ad display path in AdsActivity.onResume() and LicenseActivity.J().
  */
 object ShouldShowAdsFingerprint : Fingerprint(
     returnType = "Z",
@@ -69,6 +62,47 @@ object ShouldShowAdsFingerprint : Fingerprint(
         methodCall(
             definingClass = "Lorg/kustom/config/BuildEnv;",
             name = "A0",
+        ),
+    ),
+)
+
+/**
+ * Targets the Appodeal ad initializer: org/kustom/ads/c.a(Activity)V
+ *
+ * This is the entry point that initializes and caches Appodeal ads.
+ * Called from AdsActivity.onResume() via the ads singleton.
+ * Patching to return-void immediately prevents any ad SDK initialization.
+ */
+object AdsInitFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Landroid/app/Activity;"),
+    definingClass = "Lorg/kustom/ads/c;",
+    name = "a",
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/appodeal/ads/Appodeal;",
+            name = "setTesting",
+        ),
+    ),
+)
+
+/**
+ * Targets the ad banner show method: org/kustom/ads/a.b(FrameLayout, AdsViewHelperInterface$a)V
+ *
+ * This method creates the Appodeal banner view and adds it to the FrameLayout container.
+ * Patching to return-void immediately prevents any banner from appearing.
+ */
+object AdsBannerShowFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    parameters = listOf("Landroid/widget/FrameLayout;", "Lorg/kustom/ads/AdsViewHelperInterface\$a;"),
+    definingClass = "Lorg/kustom/ads/a;",
+    name = "b",
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/appodeal/ads/Appodeal;",
+            name = "getBannerView",
         ),
     ),
 )

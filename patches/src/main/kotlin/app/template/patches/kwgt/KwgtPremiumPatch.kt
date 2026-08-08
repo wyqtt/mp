@@ -6,12 +6,14 @@ import app.morphe.patcher.patch.bytecodePatch
 /**
  * KWGT Premium Patch
  *
- * Unlocks KWGT Pro features by patching 5 layers of the licensing system:
+ * Unlocks KWGT Pro features by patching 7 layers:
  *  A) LicenseState.isLicensed() → return true
  *  B) LicenseClient.j() → return LICENSED enum constant
  *  C) BuildEnv.g1() → return true (has-pro-key flag)
  *  D) BuildEnv.o1() → return true (secondary premium flag)
  *  E) Config.v() → return false (should-show-ads flag)
+ *  F) Ads initializer c.a() → return-void (prevent Appodeal init)
+ *  G) Banner show a.b() → return-void (prevent banner display)
  */
 @Suppress("unused")
 val kwgtPremiumPatch = bytecodePatch(
@@ -57,15 +59,25 @@ val kwgtPremiumPatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        // Layer E: Config.v() → return false (disables ads)
-        // This method is called by AdsActivity.onResume() and LicenseActivity.J()
-        // to decide whether to load/show ads. Returning false = no ads.
+        // Layer E: Config.v() → return false (disables ads at config level)
         ShouldShowAdsFingerprint.method.addInstructions(
             0,
             """
             const/4 v0, 0x0
             return v0
             """.trimIndent(),
+        )
+
+        // Layer F: Ads initializer → return-void (prevent Appodeal SDK init)
+        AdsInitFingerprint.method.addInstructions(
+            0,
+            "return-void",
+        )
+
+        // Layer G: Banner show → return-void (prevent banner display)
+        AdsBannerShowFingerprint.method.addInstructions(
+            0,
+            "return-void",
         )
     }
 }
