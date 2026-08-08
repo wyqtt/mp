@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-08T00:01:01",
-  "description": "## [1.1.0](https://github.com/wyqtt/mp/compare/v1.0.0...v1.1.0) (2026-08-08)\n\n### ✨ New Features\n\n* block ads ([8d43450](https://github.com/wyqtt/mp/commit/8d434500568dbc5f5a535ed27651f3580093eb07))",
-  "download_url": "https://github.com/wyqtt/mp/releases/download/v1.1.0/patches-1.1.0.mpp",
+  "created_at": "2026-08-08T00:10:35",
+  "description": "## [1.2.0](https://github.com/wyqtt/mp/compare/v1.1.0...v1.2.0) (2026-08-08)\n\n### ✨ New Features\n\n* block ads ([b241ad5](https://github.com/wyqtt/mp/commit/b241ad59f28485774a62a3aafe1c8d132714fa8c))",
+  "download_url": "https://github.com/wyqtt/mp/releases/download/v1.2.0/patches-1.2.0.mpp",
   "signature_download_url": "",
-  "version": "1.1.0"
+  "version": "1.2.0"
 }
